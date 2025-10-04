@@ -1,17 +1,103 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { json } from "express";
 import { insertSubmissionSchema, insertLeadershipValueSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { setupAuth } from "./auth";
+import { authenticateToken, loginUser, registerUser } from "./jwt-auth";
 import { sendEmail } from './email';
 import { extractFirstName } from "@/lib/utils";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
-  setupAuth(app);
+  
+  // Simple health check endpoint (for basic pings)
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      status: "ok",
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Comprehensive health check endpoint to keep Render instance alive
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Test database connectivity
+      await storage.getAllLeadershipValues();
+      
+      res.status(200).json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: "connected"
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: "disconnected",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Authentication endpoints
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      const result = await loginUser(username, password);
+      if (!result) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      res.json({
+        user: result.user,
+        token: result.token
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      const result = await registerUser(username, password);
+      if (!result) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      res.status(201).json({
+        user: result.user,
+        token: result.token
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/user", authenticateToken, (req, res) => {
+    res.json(req.user);
+  });
+
+  app.post("/api/logout", (req, res) => {
+    // With JWT, logout is handled client-side by removing the token
+    res.json({ message: "Logged out successfully" });
+  });
+  
   // API routes
   app.post("/api/submissions", async (req, res) => {
     try {
@@ -55,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new leadership value
-  app.post("/api/leadership-values", async (req, res) => {
+  app.post("/api/leadership-values", authenticateToken, async (req, res) => {
     try {
       // Validate the request body
       const valueData = insertLeadershipValueSchema.parse(req.body);
@@ -84,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get a specific leadership value by ID
-  app.get("/api/leadership-values/:id", async (req, res) => {
+  app.get("/api/leadership-values/:id", authenticateToken, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -106,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update a leadership value
-  app.put("/api/leadership-values/:id", async (req, res) => {
+  app.put("/api/leadership-values/:id", authenticateToken, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -145,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a leadership value
-  app.delete("/api/leadership-values/:id", async (req, res) => {
+  app.delete("/api/leadership-values/:id", authenticateToken, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -223,6 +309,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error sending email:', error);
       res.status(500).json({ error: 'Failed to send email' });
+    }
+  });
+
+  // Get all submissions
+  app.get("/api/submissions", authenticateToken, async (req, res) => {
+    try {
+      const submissions = await storage.getAllSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      res.status(500).json({
+        message: "An error occurred while fetching submissions"
+      });
+    }
+  });
+
+  // Get submissions by company code
+  app.get("/api/submissions/company/:companyCode", authenticateToken, async (req, res) => {
+    try {
+      const { companyCode } = req.params;
+      const submissions = await storage.getSubmissionsByCompanyCode(companyCode);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching submissions by company code:", error);
+      res.status(500).json({
+        message: "An error occurred while fetching submissions"
+      });
+    }
+  });
+
+  // Get unique company codes
+  app.get("/api/submissions/company-codes", authenticateToken, async (req, res) => {
+    try {
+      const companyCodes = await storage.getUniqueCompanyCodes();
+      res.json(companyCodes);
+    } catch (error) {
+      console.error("Error fetching company codes:", error);
+      res.status(500).json({
+        message: "An error occurred while fetching company codes"
+      });
+    }
+  });
+
+  // Export submissions as CSV
+  app.get("/api/submissions/export", authenticateToken, async (req, res) => {
+    try {
+      const { companyCode } = req.query;
+      
+      let submissions;
+      if (companyCode && companyCode !== 'all') {
+        submissions = await storage.getSubmissionsByCompanyCode(companyCode as string);
+      } else {
+        submissions = await storage.getAllSubmissions();
+      }
+
+      // Create CSV content
+      const csvHeader = 'Name,Email,Company Code,Core Values,Date Submitted\n';
+      const csvRows = submissions.map(submission => {
+        const coreValuesList = Array.isArray(submission.coreValues) 
+          ? submission.coreValues.join(', ')
+          : 'No values';
+        
+        return [
+          `"${submission.name}"`,
+          `"${submission.email}"`,
+          `"${submission.companyCode || ''}"`,
+          `"${coreValuesList}"`,
+          `"${new Date(submission.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}"`
+        ].join(',');
+      });
+
+      const csvContent = csvHeader + csvRows.join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="submissions${companyCode ? `_${companyCode}` : ''}.csv"`);
+      res.send(csvContent);
+    } catch (error) {
+      console.error("Error exporting submissions:", error);
+      res.status(500).json({
+        message: "An error occurred while exporting submissions"
+      });
     }
   });
 

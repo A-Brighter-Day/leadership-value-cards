@@ -23,4 +23,14 @@ export interface SelectedValues {
 export interface UserInfo {
   name: string;
   email: string;
+  companyCode?: string;
+}
+
+export interface Submission {
+  id: number;
+  name: string;
+  email: string;
+  companyCode?: string;
+  coreValues: string[];
+  createdAt: string;
 }

@@ -23,6 +23,7 @@ import { sendPdfEmail } from "@/lib/email-service";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  companyCode: z.string().optional(),
 });
 
 interface SubmissionStepProps {
@@ -44,6 +45,7 @@ const SubmissionStep = ({
     defaultValues: {
       name: "",
       email: "",
+      companyCode: "",
     },
   });
 
@@ -54,6 +56,7 @@ const SubmissionStep = ({
       await apiRequest("POST", "/api/submissions", {
         name: values.name,
         email: values.email,
+        companyCode: values.companyCode || null,
         coreValues: coreValues.map((value) => value.value),
       });
 
@@ -89,6 +92,7 @@ const SubmissionStep = ({
       onComplete({
         name: values.name,
         email: values.email,
+        companyCode: values.companyCode,
       });
     } catch (error) {
       console.error("Failed to submit:", error);
@@ -141,6 +145,22 @@ const SubmissionStep = ({
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="companyCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Code (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., TimeForge" 
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

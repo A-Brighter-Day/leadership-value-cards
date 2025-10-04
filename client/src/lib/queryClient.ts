@@ -25,11 +25,21 @@ export async function apiRequest(
   // If the URL starts with /api, use the API server URL
   const fullUrl = url.startsWith('/api') ? getApiUrl(url) : url;
   
+  // Get token from localStorage
+  const token = localStorage.getItem('authToken');
+  
+  const headers: Record<string, string> = {};
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
   const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -46,8 +56,16 @@ export const getQueryFn: <T>(options: {
     // If the URL starts with /api, use the API server URL
     const fullUrl = urlPath.startsWith('/api') ? getApiUrl(urlPath) : urlPath;
     
+    // Get token from localStorage
+    const token = localStorage.getItem('authToken');
+    
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     const res = await fetch(fullUrl, {
-      credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

@@ -57,16 +57,32 @@ Create a `.env` file in the root directory with the following variables:
 # Database connection
 DATABASE_URL=postgres://<username>:<password>@<host>:<port>/<database>
 
-# Server and client configuration - Customize the ports as needed
+# Server configuration - Customize the ports as needed
 SERVER_PORT=3001
 CLIENT_URL=http://localhost:3000
-VITE_SERVER_URL=http://localhost:3001
+
+# JWT secret for authentication (generate a secure secret)
+JWT_SECRET=your_jwt_secret_here
 
 # Email configuration
 RESEND_API_KEY="your_api_key_here"
 EMAIL_FROM_ADDRESS="your_email_address_here"
 EMAIL_FROM_NAME="your_name_here"
 CC_EMAIL="cc_email_address_here"
+```
+
+**Generate a secure JWT secret:**
+```bash
+openssl rand -hex 64
+```
+
+Copy the output and use it as your `JWT_SECRET` value.
+
+Create a `.env` file in the `client/` directory with the following variable:
+
+```
+# Client environment configuration
+VITE_SERVER_URL=http://localhost:3001
 ```
 
 4. **Set up the database**
@@ -182,10 +198,16 @@ The application is designed to be deployed as two separate services:
    DATABASE_URL=postgres://<username>:<password>@<host>:<port>/<database>
    SERVER_PORT=<port> 
    CLIENT_URL=<client-app-url> (for CORS configuration)
+   JWT_SECRET=your_jwt_secret_here
    RESEND_API_KEY="your_api_key_here"
    EMAIL_FROM_ADDRESS="your_email_address_here"
    EMAIL_FROM_NAME="your_name_here"
    CC_EMAIL="cc_email_address_here"
+   ```
+
+   **Generate a secure JWT secret:**
+   ```bash
+   openssl rand -hex 64
    ```
 
    **For the client application:**
@@ -241,11 +263,17 @@ The application is designed to be deployed as two separate services:
 - Check the server logs for backend errors
 - Look at the browser console for frontend errors
 - Verify that all dependencies are installed correctly
+- Ensure the `client/.env` file exists with `VITE_SERVER_URL` set correctly
 
 ### CORS Issues
 
 - Ensure the `CLIENT_URL` environment variable on the server matches the actual URL where your client is hosted
 - Check that the server's CORS configuration is properly allowing requests from the client
+
+### Authentication Issues
+
+- Verify that `JWT_SECRET` is set
+- Ensure the JWT secret is strong and secure (use `openssl rand -hex 64`)
 
 ### PDF Generation Problems
 

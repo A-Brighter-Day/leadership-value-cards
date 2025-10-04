@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import AdminDashboard from "@/pages/admin";
+import AdminSubmissions from "@/pages/admin-submissions";
 import Documentation from "@/pages/documentation";
 import AuthPage from "@/pages/auth-page";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -16,7 +17,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={AuthPage} />
       <ProtectedRoute path="/admin" component={AdminDashboard} />
-      <ProtectedRoute path="/documentation" component={Documentation} />
+      <ProtectedRoute path="/admin/submissions" component={AdminSubmissions} />
+      <ProtectedRoute path="/admin/documentation" component={Documentation} />
       <Route component={NotFound} />
     </Switch>
   );

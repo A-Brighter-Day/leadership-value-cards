@@ -10,11 +10,8 @@ import {
   type InsertSubmission
 } from "@shared/schema";
 import { DatabaseStorage } from "./database-storage";
-import session from "express-session";
 
 export interface IStorage {
-  // Session store for authentication
-  sessionStore: session.Store;
   
   // User methods
   getUser(id: number): Promise<User | undefined>;
@@ -32,6 +29,8 @@ export interface IStorage {
   createSubmission(submission: InsertSubmission): Promise<Submission>;
   getSubmissionById(id: number): Promise<Submission | undefined>;
   getAllSubmissions(): Promise<Submission[]>;
+  getSubmissionsByCompanyCode(companyCode: string): Promise<Submission[]>;
+  getUniqueCompanyCodes(): Promise<string[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -41,7 +40,6 @@ export class MemStorage implements IStorage {
   currentUserId: number;
   currentLeadershipValueId: number;
   currentSubmissionId: number;
-  sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -50,12 +48,6 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentLeadershipValueId = 1;
     this.currentSubmissionId = 1;
-    
-    // Create a memory store for sessions
-    const MemoryStore = require('memorystore')(session);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
     
     // Initialize with default leadership values
     import('@/lib/data').then(({ leadershipValues }) => {
@@ -131,7 +123,8 @@ export class MemStorage implements IStorage {
     const submission: Submission = { 
       ...insertSubmission, 
       id, 
-      createdAt: now 
+      createdAt: now,
+      companyCode: insertSubmission.companyCode || null
     };
     this.submissions.set(id, submission);
     return submission;
@@ -143,6 +136,22 @@ export class MemStorage implements IStorage {
   
   async getAllSubmissions(): Promise<Submission[]> {
     return Array.from(this.submissions.values());
+  }
+
+  async getSubmissionsByCompanyCode(companyCode: string): Promise<Submission[]> {
+    return Array.from(this.submissions.values()).filter(
+      submission => submission.companyCode === companyCode
+    );
+  }
+
+  async getUniqueCompanyCodes(): Promise<string[]> {
+    const codes = new Set<string>();
+    Array.from(this.submissions.values()).forEach(submission => {
+      if (submission.companyCode) {
+        codes.add(submission.companyCode);
+      }
+    });
+    return Array.from(codes);
   }
 }
 

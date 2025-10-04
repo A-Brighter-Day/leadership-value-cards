@@ -10,7 +10,7 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const [location] = useLocation();
 
-  const isAdminRoute = location === "/admin" || location === "/documentation";
+  const isAdminRoute = location.startsWith("/admin");
 
   return (
     <div className="min-h-screen flex flex-col">

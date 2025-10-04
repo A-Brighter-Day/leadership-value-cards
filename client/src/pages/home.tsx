@@ -7,8 +7,6 @@ import Top10SelectionStep from '@/components/steps/Top10SelectionStep';
 import CoreValuesStep from '@/components/steps/CoreValuesStep';
 import SubmissionStep from '@/components/steps/SubmissionStep';
 import CompletionStep from '@/components/steps/CompletionStep';
-// Import data as fallback only
-import { leadershipValues as fallbackValues } from '@/lib/data';
 import { LeadershipValue, SelectedValues, SortedValues, UserInfo } from '@/types';
 
 const steps = ['Card Sorting', 'Top 10 Selection', 'Core Values', 'Complete'];

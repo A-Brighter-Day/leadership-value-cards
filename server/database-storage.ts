@@ -10,22 +10,13 @@ import {
   type InsertSubmission
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, isNotNull, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-  
   constructor() {
-    // Initialize PostgreSQL session store
-    const PgSessionStore = connectPg(session);
-    this.sessionStore = new PgSessionStore({
-      createTableIfMissing: true,
-      tableName: 'session'
-    });
   }
+  
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -47,7 +38,7 @@ export class DatabaseStorage implements IStorage {
   
   // Leadership Values methods
   async getAllLeadershipValues(): Promise<LeadershipValue[]> {
-    return db.select().from(leadershipValues);
+    return db.select().from(leadershipValues).orderBy(desc(leadershipValues.id));
   }
   
   async getLeadershipValueById(id: number): Promise<LeadershipValue | undefined> {
@@ -106,6 +97,18 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllSubmissions(): Promise<Submission[]> {
-    return db.select().from(submissions);
+    return db.select().from(submissions).orderBy(desc(submissions.createdAt));
+  }
+
+  async getSubmissionsByCompanyCode(companyCode: string): Promise<Submission[]> {
+    return db.select().from(submissions).where(eq(submissions.companyCode, companyCode)).orderBy(desc(submissions.createdAt));
+  }
+
+  async getUniqueCompanyCodes(): Promise<string[]> {
+    const result = await db
+      .selectDistinct({ companyCode: submissions.companyCode })
+      .from(submissions)
+      .where(isNotNull(submissions.companyCode));
+    return result.map(row => row.companyCode).filter((code): code is string => Boolean(code));
   }
 }

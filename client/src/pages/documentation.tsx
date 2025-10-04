@@ -59,13 +59,16 @@ const Documentation = () => {
                 DATABASE_URL=postgres://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;database&gt;
                 <br />
                 <br />
-                # Server and client configuration - Customize the ports as needed
+                # Server configuration - Customize the ports as needed
                 <br />
                 SERVER_PORT=3001
                 <br />
-                CLIENT_PORT=3000
+                CLIENT_URL=http://localhost:3000
                 <br />
-                VITE_SERVER_URL=http://localhost:3001
+                <br />
+                # JWT secret for authentication (generate a secure secret)
+                <br />
+                JWT_SECRET=your_jwt_secret_here
                 <br />
                 <br />
                 # Email configuration<br />
@@ -78,6 +81,9 @@ const Documentation = () => {
                 CC_EMAIL="cc_email_address_here"
                 
                 </code></pre>
+              <p><strong>Generate a secure JWT secret:</strong></p>
+              <pre><code>openssl rand -hex 64</code></pre>
+              <p>Copy the output and use it as your <code>JWT_SECRET</code> value.</p>
             </li>
             <li>
               <strong>Set up the database</strong>
@@ -86,6 +92,12 @@ const Documentation = () => {
             <li>
               <strong>Seed the database with initial leadership values</strong>
               <pre><code>npx tsx server/seed.ts</code></pre>
+            </li>
+            <li>
+              <strong>Create client environment file</strong>
+              <p>Create a <code>.env</code> file in the <code>client/</code> directory:</p>
+              <pre><code># Client environment configuration
+VITE_SERVER_URL=http://localhost:3001</code></pre>
             </li>
             <li>
               <strong>Start the application</strong>
@@ -181,6 +193,8 @@ const Documentation = () => {
                 <br />
                 CLIENT_URL=&lt;client-app-url&gt; (for CORS configuration)
                 <br />
+                JWT_SECRET=your_jwt_secret_here
+                <br />
                 RESEND_API_KEY="your_api_key_here"
                 <br />
                 EMAIL_FROM_ADDRESS="your_email_address_here"
@@ -189,6 +203,8 @@ const Documentation = () => {
                 <br />
                 CC_EMAIL="cc_email_address_here"
                 </code></pre>
+              <p><strong>Generate a secure JWT secret:</strong></p>
+              <pre><code>openssl rand -hex 64</code></pre>
 
               <p><strong>For the client application:</strong></p>
               <pre><code>VITE_SERVER_URL=&lt;api-server-url&gt;</code></pre>
@@ -246,6 +262,13 @@ const Documentation = () => {
               <ul>
                 <li>Ensure the <code>CLIENT_URL</code> environment variable on the server matches the actual URL where your client is hosted</li>
                 <li>Check that the server's CORS configuration is properly allowing requests from the client</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Authentication issues:</strong>
+              <ul>
+                <li>Verify that <code>JWT_SECRET</code> is set</li>
+                <li>Ensure the JWT secret is strong and secure (use <code>openssl rand -hex 64</code>)</li>
               </ul>
             </li>
             <li>

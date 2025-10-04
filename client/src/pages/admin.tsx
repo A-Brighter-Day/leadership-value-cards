@@ -25,12 +25,12 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { LeadershipValue } from "@/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  BookOpen,
   LogOut,
   PencilIcon,
   PlusIcon,
   RotateCcw,
   TrashIcon,
+  BarChart3, // Add this import
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -207,170 +207,97 @@ const AdminDashboard = () => {
               Manage leadership value cards
             </p>
           </div>
-          <div className="flex flex-col md:flex-row gap-2 ">
-            <div className="hidden md:flex flex-col gap-2">
-              <Link href="/documentation">
-                <Button variant="outline" size="sm">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  How to Set Up
-                </Button>
-              </Link>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger className="" asChild>
-                  <Button size="sm">
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Add New Value
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Leadership Value</DialogTitle>
-                    <DialogDescription>
-                      Create a new leadership value card to be used in the
-                      assessment.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddValue}>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <label htmlFor="value" className="text-sm font-medium">
-                          Value Name
-                        </label>
-                        <Input
-                          id="value"
-                          name="value"
-                          placeholder="e.g., Integrity"
-                          value={formData.value}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="description"
-                          className="text-sm font-medium"
-                        >
-                          Description
-                        </label>
-                        <Textarea
-                          id="description"
-                          name="description"
-                          placeholder="Enter description of this leadership value"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          required
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={addMutation.isPending}>
-                        {addMutation.isPending ? "Adding..." : "Add Value"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Link href="/">
-                <Button variant="outline" size="sm">
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Back to App
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                className="flex items-center justify-start"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4" />
+                Back to App
               </Button>
-            </div>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              disabled={logoutMutation.isPending}
+              className="flex items-center justify-start"
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </Button>
           </div>
         </div>
 
-        <div className="md:hidden justify-between flex gap-2">
-              <Link href="/documentation">
-                <Button variant="outline" size="sm">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  How to Set Up
-                </Button>
-              </Link>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger className="" asChild>
-                  <Button size="sm">
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Add New Value
+        <div className="flex gap-3">
+          <Link href="/admin/submissions">
+            <Button variant="outline" size="sm">
+              <BarChart3 className="h-4 w-4" />
+              View Submissions
+            </Button>
+          </Link>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger className="" asChild>
+              <Button size="sm">
+                <PlusIcon className="h-4 w-4" />
+                Add New Value
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Leadership Value</DialogTitle>
+                <DialogDescription>
+                  Create a new leadership value card to be used in the
+                  assessment.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddValue}>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label htmlFor="value" className="text-sm font-medium">
+                      Value Name
+                    </label>
+                    <Input
+                      id="value"
+                      name="value"
+                      placeholder="e.g., Integrity"
+                      value={formData.value}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="description"
+                      className="text-sm font-medium"
+                    >
+                      Description
+                    </label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      placeholder="Enter description of this leadership value"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      required
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
+                    Cancel
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Leadership Value</DialogTitle>
-                    <DialogDescription>
-                      Create a new leadership value card to be used in the
-                      assessment.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddValue}>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <label htmlFor="value" className="text-sm font-medium">
-                          Value Name
-                        </label>
-                        <Input
-                          id="value"
-                          name="value"
-                          placeholder="e.g., Integrity"
-                          value={formData.value}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="description"
-                          className="text-sm font-medium"
-                        >
-                          Description
-                        </label>
-                        <Textarea
-                          id="description"
-                          name="description"
-                          placeholder="Enter description of this leadership value"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          required
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={addMutation.isPending}>
-                        {addMutation.isPending ? "Adding..." : "Add Value"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+                  <Button type="submit" disabled={addMutation.isPending}>
+                    {addMutation.isPending ? "Adding..." : "Add Value"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <Separator className="my-6" />
 

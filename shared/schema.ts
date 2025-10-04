@@ -36,13 +36,15 @@ export const submissions = pgTable("submissions", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  coreValues: jsonb("core_values").notNull(), // Array of value IDs
+  companyCode: text("company_code"), // Optional company code field
+  coreValues: jsonb("core_values").notNull(), // Array of value names
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertSubmissionSchema = createInsertSchema(submissions).pick({
   name: true,
   email: true,
+  companyCode: true,
   coreValues: true,
 });
 

@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import { useEffect } from "react";
 
 export function ProtectedRoute({
   path,
@@ -9,7 +10,12 @@ export function ProtectedRoute({
   path: string;
   component: React.ComponentType;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, checkAuth } = useAuth();
+
+  // Trigger auth check when the component mounts
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <Route path={path}>

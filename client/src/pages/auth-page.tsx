@@ -133,52 +133,9 @@ const AuthPage = () => {
         <div className="max-w-md mx-auto">
           <h1 className="text-4xl font-bold text-primary mb-6">Admin Portal</h1>
           <p className="text-lg mb-8 text-muted-foreground">
-            Welcome to the admin portal for the Leadership Value Cards Sorting
-            Application. This portal allows you to manage the leadership value
-            cards, view user submissions, and customize the experience.
+            This portal allows you to manage the leadership value
+            cards, view user submissions, and export data for analysis.
           </p>
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mr-3 mt-1">
-                <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-white font-medium">
-                  1
-                </div>
-              </div>
-              <div>
-                <h3 className="font-medium">Manage Value Cards</h3>
-                <p className="text-muted-foreground">
-                  Add, edit, or remove leadership value cards used in the
-                  assessment.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mr-3 mt-1">
-                <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-white font-medium">
-                  2
-                </div>
-              </div>
-              <div>
-                <h3 className="font-medium">View Submissions</h3>
-                <p className="text-muted-foreground">
-                  Access user submissions and export data for follow-up.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mr-3 mt-1">
-                <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-white font-medium">
-                  3
-                </div>
-              </div>
-              <div>
-                <h3 className="font-medium">Customize PDF Output</h3>
-                <p className="text-muted-foreground">
-                  Personalize the PDF certificates generated for users.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

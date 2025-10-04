@@ -9,13 +9,19 @@ import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
+type AuthResponse = {
+  user: SelectUser;
+  token: string;
+};
+
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
+  loginMutation: UseMutationResult<AuthResponse, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, LoginData>;
+  registerMutation: UseMutationResult<AuthResponse, Error, LoginData>;
+  checkAuth: () => void;
 };
 
 type LoginData = {
@@ -31,18 +37,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch: checkAuth,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!localStorage.getItem('authToken'), // Only fetch if token exists
   });
 
-  const loginMutation = useMutation({
+  const loginMutation = useMutation<AuthResponse, Error, LoginData>({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      const data = await res.json();
+      return data;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (data: { user: SelectUser; token: string }) => {
+      // Store token in localStorage
+      localStorage.setItem('authToken', data.token);
+      queryClient.setQueryData(["/api/user"], data.user);
       toast({
         title: "Login successful",
         description: "You are now logged in to the admin portal.",
@@ -57,13 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const registerMutation = useMutation({
+  const registerMutation = useMutation<AuthResponse, Error, LoginData>({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      const data = await res.json();
+      return data;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (data: { user: SelectUser; token: string }) => {
+      // Store token in localStorage
+      localStorage.setItem('authToken', data.token);
+      queryClient.setQueryData(["/api/user"], data.user);
       toast({
         title: "Account created",
         description: "Your admin account has been created successfully.",
@@ -80,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
+      // Remove token from localStorage
+      localStorage.removeItem('authToken');
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
@@ -90,10 +106,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error: Error) => {
+      // Even if logout fails on server, clear local state
+      localStorage.removeItem('authToken');
+      queryClient.setQueryData(["/api/user"], null);
       toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
+        title: "Logged out",
+        description: "You have been logged out of the admin portal.",
       });
     },
   });
@@ -107,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        checkAuth,
       }}
     >
       {children}
